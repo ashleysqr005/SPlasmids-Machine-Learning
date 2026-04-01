@@ -106,7 +106,7 @@ def preprocess(
 
 def run_umap(x: np.ndarray, seed: int) -> np.ndarray:
     reducer = umap.UMAP(
-        n_neighbors=15,
+        n_neighbors=50, # can tune
         min_dist=0.1,
         metric="euclidean",
         random_state=seed,
@@ -236,7 +236,7 @@ def main() -> int:
     parser.add_argument(
         "--tsne-perplexity",
         type=float,
-        default=30.0,
+        default=30.0, #can tune
         help="t-SNE perplexity (capped automatically vs sample size).",
     )
     parser.add_argument(
