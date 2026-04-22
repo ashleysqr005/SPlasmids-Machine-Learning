@@ -33,7 +33,8 @@ RANDOM_STATE = 42
 TEST_SIZE    = 0.2
 VAL_SIZE     = 0.15
 
-TARGET = "b_ko_hab"
+TARGET = "b_z"
+RAW_TARGET = "b_ko_hab"
 ETYPE  = "mean"
 
 FEATURE_MODE = "both"   # "both", "embedding_only", "habitat_only"
@@ -66,7 +67,22 @@ FINETUNE_SEARCH_SPACE = {
     "patience":     [30],
 }
 
-N_ITER = 50
+N_ITER = 50"""
+
+FINETUNE_SEARCH_SPACE = {
+    "hidden_sizes": [
+        (512, 128, 32),
+    ],
+    "lr":           [1e-3], #0.001
+    "dropout":      [0.5], #0.5
+    "weight_decay": [5e-4],# 0.0005
+    "batch_size":   [256], #[128, 256, 512], #256
+    "optimizer":    ['adam'],
+    "use_scheduler":[False],
+    "epochs":       [500],
+    "patience":     [30],
+}
+N_ITER = 1"""
 
 # ================= MLP MODEL =================
 
@@ -471,15 +487,19 @@ def run_finetune(X_tr, X_te, y_tr, y_te, ko_tr, n_emb, feature_mode, out_root):
         **best_params,
     }
 
-
 # ================= MAIN =================
 if __name__ == "__main__":
-    FEATURE_MODES = ["habitat_only", "embedding_only", "both"]
+    #FEATURE_MODES = ["habitat_only", "embedding_only", "both"]
+    FEATURE_MODES = ["both"]
     OUT_ROOT = "results/mlp_finetune_v2"
 
     os.makedirs(OUT_ROOT, exist_ok=True)
 
     df     = pd.read_csv(SUMMARY_FILE)
+    #normalize data
+    df["b_z"] = df.groupby("habitat")[RAW_TARGET].transform(
+        lambda x: (x - x.mean()) / (x.std() + 1e-8)
+    )
     ko_emb = load_embeddings(ETYPE)
 
     h_enc = OneHotEncoder(
